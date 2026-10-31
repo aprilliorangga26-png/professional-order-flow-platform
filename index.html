@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="id">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>GoldFlow Terminal</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <div class="app-shell">
+      <header class="topbar">
+        <div class="brand-wrap">
+          <div class="brand-mark">GF</div>
+          <div>
+            <div class="brand-title">GoldFlow Terminal</div>
+            <div class="brand-subtitle">Order Flow & Market Microstructure</div>
+          </div>
+        </div>
+
+        <div class="topbar-controls">
+          <div class="instrument-switcher" id="instrumentSwitcher"></div>
+          <div class="connection-panel">
+            <span class="status-dot live"></span>
+            <span id="connectionStatus">Mode: Simulated</span>
+          </div>
+        </div>
+      </header>
+
+      <aside class="utility-bar">
+        <div class="utility-group">
+          <span class="tag neutral">Desktop</span>
+          <span class="tag neutral">Android</span>
+          <span class="tag neutral">Replay</span>
+        </div>
+        <div class="utility-group">
+          <button class="mini-btn" id="saveLayoutBtn">Simpan layout</button>
+          <button class="mini-btn" id="resetLayoutBtn">Reset</button>
+        </div>
+      </aside>
+
+      <main class="workspace-grid">
+        <section class="panel panel-chart">
+          <div class="panel-header">
+            <div>
+              <h3>Chart</h3>
+              <small id="chartSummary">XAUUSD Spot · Simulated dataset</small>
+            </div>
+            <div class="panel-actions">
+              <span class="tag info">TradingView</span>
+              <span class="tag warning">Display only</span>
+            </div>
+          </div>
+          <div id="tradingviewWidget"></div>
+        </section>
+
+        <section class="panel panel-heatmap">
+          <div class="panel-header">
+            <div>
+              <h3>Liquidity Heatmap</h3>
+              <small>Displayed volume by price / time</small>
+            </div>
+            <div class="panel-actions">
+              <span class="tag danger">Order book</span>
+            </div>
+          </div>
+          <div id="heatmapContainer" class="heatmap"></div>
+        </section>
+
+        <section class="panel panel-dom">
+          <div class="panel-header">
+            <div>
+              <h3>Depth of Market</h3>
+              <small>Bid / ask ladder</small>
+            </div>
+            <div class="panel-actions">
+              <span class="tag neutral">Depth 10</span>
+            </div>
+          </div>
+          <div id="domContainer" class="dom-list"></div>
+        </section>
+
+        <section class="panel panel-footprint">
+          <div class="panel-header">
+            <div>
+              <h3>Footprint</h3>
+              <small>Bid x ask volume at price</small>
+            </div>
+            <div class="panel-actions">
+              <span class="tag warning">Requires trade-side data</span>
+            </div>
+          </div>
+          <div id="footprintContainer" class="footprint"></div>
+        </section>
+
+        <section class="panel panel-bubbles">
+          <div class="panel-header">
+            <div>
+              <h3>Volume Bubbles</h3>
+              <small>Transaction events</small>
+            </div>
+            <div class="panel-actions">
+              <span class="tag neutral">Min 5 lots</span>
+            </div>
+          </div>
+          <div id="bubblesContainer" class="bubble-panel"></div>
+        </section>
+
+        <section class="panel panel-cvd">
+          <div class="panel-header">
+            <div>
+              <h3>CVD & Delta</h3>
+              <small>Per-bar delta · cumulative delta</small>
+            </div>
+            <div class="panel-actions">
+              <span class="tag info">Observed vs inferred</span>
+            </div>
+          </div>
+          <div id="cvdChart" class="cvd-chart"></div>
+        </section>
+
+        <section class="panel panel-news">
+          <div class="panel-header">
+            <div>
+              <h3>Macro & News</h3>
+              <small>Gold drivers</small>
+            </div>
+            <div class="panel-actions">
+              <span class="tag neutral">Illustrative</span>
+            </div>
+          </div>
+          <div id="newsList" class="news-list"></div>
+        </section>
+
+        <section class="panel panel-quant">
+          <div class="panel-header">
+            <div>
+              <h3>Quant Analytics</h3>
+              <small>OFI · trade intensity · imbalance</small>
+            </div>
+            <div class="panel-actions">
+              <span class="tag neutral">Backtest ready</span>
+            </div>
+          </div>
+          <div id="quantMetrics" class="metrics-grid"></div>
+        </section>
+
+        <section class="panel panel-replay">
+          <div class="panel-header">
+            <div>
+              <h3>Replay Engine</h3>
+              <small>Historical event playback</small>
+            </div>
+            <div class="panel-actions">
+              <button id="playPauseBtn" class="mini-btn primary">Play</button>
+            </div>
+          </div>
+          <div class="replay-controls">
+            <input id="replaySlider" type="range" min="0" max="100" value="32" />
+            <div class="replay-meta">
+              <span id="replayTime">12:00:00</span>
+              <span id="replaySpeed">Speed: 1.0x</span>
+            </div>
+          </div>
+        </section>
+      </main>
+    </div>
+
+    <script src="https://s.tradingview.com/tv.js"></script>
+    <script type="module" src="app.js"></script>
+  </body>
+</html>
