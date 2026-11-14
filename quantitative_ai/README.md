@@ -1,69 +1,33 @@
-# Quantitative AI Research System — Data Foundation
+# Quantitative AI Research System — Multi-Timeframe Data Layout
 
-This phase adds an explicit XAUUSD data-source contract and CSV adapter on top
-of the initial OHLCV validator. It remains a research data foundation only: no
-signals, recommendations, strategy logic, backtests, or performance claims.
+This phase introduces an explicit multi-timeframe dataset bundle for XAUUSD.
+It is still a data and structure foundation only. No technical signal, trading
+recommendation, or backtest logic is added.
 
-## Layout
+## Purpose
 
-```text
-quantitative_ai/
-├── data/                         # Local data directories (no market data committed)
-├── quantitative_ai/
-│   ├── data/
-│   │   ├── csv_loader.py         # Generic OHLCV CSV parser and validation
-│   │   ├── csv_source.py         # Provenance- and metadata-aware CSV adapter
-│   │   ├── source_metadata.py    # Instrument/source/provenance dataclasses
-│   │   └── source_registry.py    # Named XAUUSD source specifications
-│   ├── models.py                 # Immutable OHLCV bar
-│   └── main.py                  # CSV validation CLI
-└── tests/                        # Standard-library unittest suite
-```
+The system is designed around daily-to-swing research with primary H4 context
+and H1/D1 confirmation. This module makes that requirement explicit instead of
+assuming the system will magically align timeframes or discover data files.
 
-## CSV contract
+## Included components
 
-CSV headers must include `timestamp,open,high,low,close,volume`. Timestamps are
-ISO-8601 with an explicit UTC offset. Prices must be finite and positive;
-volume finite and non-negative; highs/lows internally consistent; timestamps
-strictly increasing and unique. Rows are never sorted, filled, or silently
-repaired. Gaps are preserved because no vendor calendar or expected interval
-has been specified.
+- `timeframe.py` — canonical timeframe normalization and duration definition
+- `dataset_bundle.py` — bundle validation for primary/confirmation timeframes
+- tests in `tests/test_dataset_bundle.py` — validates the declared bundle layout
 
-## Source metadata and provenance
+## Rules enforced
 
-`DataSourceSpec` requires a supported instrument and timeframe, declares a
-valid IANA timezone and source type, and can identify a local CSV path.
-`DataProvenance` records a provider/source label and timezone-aware retrieval
-timestamp, with optional URI, dataset revision, and license details. The CSV
-adapter requires provenance by default. This is traceability metadata supplied
-by the caller; it does not verify provider identity, licensing, or file
-integrity.
+- timeframes are normalized to canonical values such as `H1`, `H4`, and `D1`
+- a bundle must declare at least one source spec
+- duplicate source names are rejected
+- timeframe alias values such as `4h` and `1d` are accepted and normalized
+- research bundles are explicit; no missing dataset is inferred silently
 
-A small default registry lists H1, H4, and D1 XAUUSD dataset *specifications*.
-They do not point to actual data files and are not evidence that market data is
-available. Register a real source only after providing its actual provenance.
+## Limitations
 
-## Run tests
-
-From the repository root (Python 3.10+):
-
-```bash
-python -m unittest discover -s quantitative_ai/tests -v
-```
-
-The project uses only the Python standard library. No market data or external
-provider credentials are included.
-
-## Limitations and unresolved specifications
-
-- Timeframe labels are metadata only; this phase does not verify candle spacing,
-  trading sessions, or bar close conventions.
-- A timezone offset in a timestamp cannot prove the true vendor/session
-  convention. The adapter checks offset compatibility with the declared zone,
-  not provenance authenticity.
-- XAUUSD pip/tick size is deliberately not hard-coded; conventions vary by
-  provider and account.
-- Fibonacci anchoring and the meaning of OCL remain unspecified and are not
-  implemented.
-- Source-specific schema changes, revisions, and corporate-action-like data
-  correction policies need provider documentation before implementation.
+- this does not resample, merge, or backfill data
+- it does not certify that the source files exist or are correct
+- it does not infer the trading calendar or session shifts
+- future modules will still need provider-specific semantics for historical
+  corrections and symbol conventions
