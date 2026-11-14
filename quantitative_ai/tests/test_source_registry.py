@@ -1,24 +1,54 @@
-"""Registry helpers for supported market-data sources."""
+"""Tests for source metadata and registry behavior."""
 
-from __future__ import annotations
+import unittest
+from datetime import datetime, timezone
 
-from .source_metadata import DataSourceSpec, build_xauusd_source
-
-DEFAULT_XAUUSD_SOURCES = {
-    "xauusd_h4_csv": build_xauusd_source("xauusd_h4_csv", timeframe="H4", source_type="csv"),
-    "xauusd_h1_csv": build_xauusd_source("xauusd_h1_csv", timeframe="H1", source_type="csv"),
-    "xauusd_d1_csv": build_xauusd_source("xauusd_d1_csv", timeframe="D1", source_type="csv"),
-}
-
-
-def get_source(name: str) -> DataSourceSpec:
-    """Return a registered source specification by name."""
-    try:
-        return DEFAULT_XAUUSD_SOURCES[name]
-    except KeyError as exc:
-        raise KeyError(f"Unknown source {name!r}; registered sources: {sorted(DEFAULT_XAUUSD_SOURCES)}") from exc
+from quantitative_ai.quantitative_ai.data.source_metadata import (
+    DataProvenance,
+    DataSourceSpec,
+    build_xauusd_source,
+)
+from quantitative_ai.quantitative_ai.data.source_registry import (
+    get_source,
+    list_sources,
+    register_source,
+)
 
 
-def list_sources() -> list[str]:
-    """Return the names of the registered XAUUSD sources."""
-    return sorted(DEFAULT_XAUUSD_SOURCES)
+class SourceMetadataTests(unittest.TestCase):
+    def test_normalizes_timeframe_alias_and_instrument(self) -> None:
+        source = build_xauusd_source("custom", timeframe="4h", path="bars.csv")
+        self.assertEqual(source.instrument, "XAUUSD")
+        self.assertEqual(source.timeframe, "H4")
+
+    def test_rejects_unknown_timeframe_instrument_and_timezone(self) -> None:
+        with self.assertRaisesRegex(ValueError, "Unsupported timeframe"):
+            DataSourceSpec("bad", "XAUUSD", "M90")
+        with self.assertRaisesRegex(ValueError, "Unsupported instrument"):
+            DataSourceSpec("bad", "EURUSD", "H1")
+        with self.assertRaisesRegex(ValueError, "Invalid IANA timezone"):
+            DataSourceSpec("bad", "XAUUSD", "H1", timezone="Not/AZone")
+
+    def test_provenance_requires_timezone_aware_retrieval_time(self) -> None:
+        with self.assertRaisesRegex(ValueError, "timezone-aware"):
+            DataProvenance("vendor", datetime(2025, 1, 1))
+
+
+class SourceRegistryTests(unittest.TestCase):
+    def test_default_sources_include_research_timeframes(self) -> None:
+        self.assertEqual(
+            list_sources(),
+            ["xauusd_d1_csv", "xauusd_h1_csv", "xauusd_h4_csv"],
+        )
+        self.assertEqual(get_source("xauusd_h4_csv").timeframe, "H4")
+
+    def test_registration_rejects_duplicate_unless_replaced(self) -> None:
+        spec = DataSourceSpec("test_registry_source", "XAUUSD", "H1")
+        register_source(spec)
+        with self.assertRaisesRegex(ValueError, "already registered"):
+            register_source(spec)
+        register_source(spec, replace=True)
+
+
+if __name__ == "__main__":
+    unittest.main()
